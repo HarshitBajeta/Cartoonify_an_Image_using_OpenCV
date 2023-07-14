@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cartoonify and Filter Your Image!</title>
+    <style>
+        body {
+            background-color: grey;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .form-part {
+            
+            padding: 100px;
+            background-color: #2c3645;
+            text-align: center;
+            font-family: Calibri, sans-serif;
+            color: white;
+        }
+        h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .upload-btn {
+            background-color: transparent;
+            color: wheat;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .upload-btn:hover {
+            background-color: #374256;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-part">
+            <h1> Your Image!</h1>
+            <form method="POST">
+                <button type="submit" name="button1" value="Submit1" class="upload-btn">Cartoonify the Image</button>
+                <br><br>
+                <button type="submit" name="button2" value="Submit2" class="upload-btn">Applying Effects on Image</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
