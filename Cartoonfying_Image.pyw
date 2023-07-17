@@ -5,7 +5,6 @@ import easygui
 import cv2
 import matplotlib.pyplot as plt
 import os
-import sys
 import numpy as np
 from PIL import Image,ImageTk
 from scipy.interpolate import UnivariateSpline
@@ -65,7 +64,7 @@ def cam2():
     cam = cv2.VideoCapture(0)
     cv2.namedWindow("test")
     img_counter = 0
-    while img_counter==0:
+    while img_counter == 0:
         ret, img = cam.read()
         if not ret:
             print("Failed to grab frame")
@@ -102,22 +101,19 @@ def save(Image, ImagePath):
 
 #Funtion for converting image to pencil scketch (both colored and grey)
 def pencil_sketch(img1):
-    sk_gray, sk_color = cv2.pencilSketch(img1, sigma_s=60, sigma_r=0.07, shade_factor=0.1) 
+    sk_gray, sk_color = cv2.pencilSketch(img1, sigma_s=70, sigma_r=0.04, shade_factor=0.2)
     sketches=[sk_gray, sk_color]
     fig, axes = plt.subplots(1,2, figsize=(8,8), subplot_kw={'xticks':[], 'yticks':[]}, gridspec_kw=dict(hspace=0.1, wspace=0.1))
     for i, ax in enumerate(axes.flat):
         ax.imshow(sketches[i], cmap='gray')
     plt.show()
 
-#Funtion for Apllying Sepia Filter to image (Adding a little red-brownish color)
-def sepia(img):
-    kernel = np.array([[0.272, 0.534, 0.131],
-                       [0.349, 0.686, 0.168],
-                       [0.393, 0.769, 0.189]])
-    img_sepia = cv2.filter2D(img, -1, kernel)
-    display(img_sepia,"Sepia Filtered Image")
+#Funtion for Apllying Darker Filter to image
+def dark(img):
+    img_dark = cv2.convertScaleAbs(img, beta=-50)
+    display(img_dark,"Darker Image")
 
-#Funtion for converting image to Grey image
+#Funtion for converting image to Gray image
 def greyscale(img):
     greyImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     display(greyImg,"Gray Image")
@@ -125,11 +121,11 @@ def greyscale(img):
 #Funtion for Brigtening image
 def bright(img):
     img_bright = cv2.convertScaleAbs(img, beta=50)
-    display(img_bright,"Brightened Image")
+    display(img_bright,"Brighter Image")
 
 #Funtion for Sharpen image
 def sharpen(img):
-    kernel = np.array([[-1, -1, -1], [-1, 9.5, -1], [-1, -1, -1]])
+    kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
     img_sharpen = cv2.filter2D(img, -1, kernel)
     display(img_sharpen,"Sharpen Image")
 
@@ -185,10 +181,10 @@ def tryEffects(Orig):
     PencilSketch.configure(background="#374256", foreground="wheat", font=('calibri', 10, 'bold'))
     PencilSketch.pack(side=TOP, pady=5)
 
-    #Button for Sepia Filter
-    Sepia = Button(td, text="Sepia", command=lambda: sepia(Orig), padx=10, pady=5)
-    Sepia.configure(background="#374256", foreground="wheat", font=('calibri', 10, 'bold'))
-    Sepia.pack(side=TOP, pady=5)
+    #Button for Dark Filter
+    Dark = Button(td, text="Darker Image", command=lambda: dark(Orig), padx=10, pady=5)
+    Dark.configure(background="#374256", foreground="wheat", font=('calibri', 10, 'bold'))
+    Dark.pack(side=TOP, pady=5)
 
     #Button for Brighten Image
     BrightI = Button(td, text="Brighten Image", command=lambda: bright(Orig), padx=10, pady=5)
@@ -283,27 +279,21 @@ def cartoonify(Orignal,ImagePath):
     display(Blurred,"Median Blurred Image")
 
     #Creating edge mask
-    line_size = 7
-    blur_value = 7
+    line_size = 15
+    blur_value = 10
     LightEdged = cv2.adaptiveThreshold(Blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, line_size, blur_value)
     #Displaying Edge Masked Image
     display(LightEdged,"Light Edge Masked Image")
 
     #Applying bilateral filter to remove noise as required
-    NoiseFree=cv2.bilateralFilter(Orignal, 15, 75, 75)
+    NoiseFree=cv2.bilateralFilter(Orignal, 15, 80, 80)
     #Displaying Noise Free Image
-    display(NoiseFree,"Mask Image")
+    display(NoiseFree,"Noisefree")
 
-    #Eroding and Dilating
-    kernel=np.ones((1,1),np.uint8)
-    Eroded=cv2.erode(NoiseFree,kernel,iterations=3)
-    Dilated=cv2.dilate(Eroded,kernel,iterations=3)
-    #Displaying Eroded and Dilated Image
-    display(Dilated,"Eroded & Dilated Image")
 
     #Implementing K-Means Clustering (For number of colors in the image)
     k = number_of_colors = 5
-    temp=np.float32(Dilated).reshape(-1,3)
+    temp=np.float32(NoiseFree).reshape(-1,3)
     criteria=(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,20,1.0)
     compactness,label,center=cv2.kmeans(temp,k,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
     center=np.uint8(center)
@@ -316,10 +306,13 @@ def cartoonify(Orignal,ImagePath):
     display(Final,"FINAL")
 
     #For all transition Plot
-    images=[Orignal, Grayed, Blurred, LightEdged, NoiseFree, Eroded, Dilated, Final]
+    images=[Orignal, Grayed, Blurred, LightEdged, NoiseFree, final_img, Final]
     fig, axes = plt.subplots(4,2, figsize=(8,8), subplot_kw={'xticks':[], 'yticks':[]}, gridspec_kw=dict(hspace=0.1, wspace=0.1))
     for i, ax in enumerate(axes.flat):
-        ax.imshow(images[i], cmap='gray')
+        if i<len(images):
+            ax.imshow(images[i], cmap='gray')
+        else:
+            ax.axis('off')
     plt.show()
 
     #Save Button
